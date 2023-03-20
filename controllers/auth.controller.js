@@ -1,4 +1,5 @@
 import {User} from "../models/User.js";
+import { generateRefreshToken, generateToken } from "../utils/generateToken.js";
 
 export const register = async(req, res) => {
     const {email, password} = req.body;
@@ -12,13 +13,20 @@ export const register = async(req, res) => {
         await user.save();
         console.log(user)
         console.log(req.body)
+
+        // Generar el tokenJWT 
+
+        const {token, expiresIn} = generateToken(user.id)
+        generateRefreshToken(user.id, res);
+
+
         // el status 201 es una confirmación de creación que veremos por consola
-        return res.status(201).json({ ok: true })
+        return res.status(201).json({ token, expiresIn })
     } catch (error) {
         // Alternativa 1 para validar, por defecto mongoose
         console.log(error.message)
         if(error.code === 11000){
-            // El status 400 es un bad request, que indica que no se han introducido los datos a decuados o no se tiwne la autorización pertinente
+            // El status 400 es un bad request, que indica que no se han introducido los datos adecuados o no se tiene la autorización pertinente
             return res.status(400).json({ error: "Ya existe este ususario"});
         }
         // Stataus 500 indica un error de servidor.
@@ -34,15 +42,43 @@ export const login = async(req, res) => {
         const { email, password } = req.body;
         let user = await User.findOne({email});
         if (!user) return res.status(403).json({ error: "No existe este ususario"});
-        return res.json({ok: "login"});
-
-
         const respuestaPassword = await user.comparePassword(password)
         if (!respuestaPassword) 
-            return res.status(403).json({ error: "Contraseña incorrecta"})
+        return res.status(403).json({ error: "Contraseña incorrecta"})
+        
+        // Generar token
 
+        const {token, expiresIn} = generateToken(user.id)
+        generateRefreshToken(user.id, res);
+        return res.json({ token, expiresIn});
+        
     } catch (error) {
         console.log(error)
         return res.status(500).json({ error: "Error de servidor"})
     }
 };
+
+export const infoUser = async(req, res) => {
+    try {
+        const user = await User.findById(req.uid).lean()
+        return res.json({email: user.email, uid: user.id});
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ error: "error de server"})
+    }
+};
+
+export const refreshToken = (req, res) => {
+    try {
+        const {token, expiresIn} = generateToken(req.uid)
+        return res.json({ token, expiresIn});
+    } catch (error) {
+        console.log(error)
+        return res.status(500).json({ error: "error de server"})
+    }
+};
+
+export const logout = (req, res) => {
+    res.clearCookie('refreshToken')
+    res.json({ok: true})
+}

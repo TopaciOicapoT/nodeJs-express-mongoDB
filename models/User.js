@@ -1,3 +1,5 @@
+// TODO LO QUE HAY DENTRO DE LOS AECHIVOS MODELS USAN LAS FUNCIONES DE MONGOOSE
+
 import bcryptjs from "bcryptjs";
 import mongoose from "mongoose";
 
@@ -37,7 +39,7 @@ userSchema.pre("save", async function (next) {
 
 // Creamos una función dentro de userSchema
 userSchema.methods.comparePassword = async function(canditatePassword){
-    return await bcryptjs.compare(candidatePasseord, this.password)
+    return await bcryptjs.compare(canditatePassword, this.password)
 };
 
-export const User = mongoose.model('User', userSchema);
+export const User = mongoose.model("User", userSchema);

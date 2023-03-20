@@ -1,41 +1,19 @@
 import { Router } from "express";
-import { login, register } from "../controllers/auth.controller.js";
-import { body } from "express-validator"
-import { validationResultExpress } from "../middlewares/validationResultExpress.js";
+import { infoUser } from "../controllers/auth.controller.js";
+import { requiereToken } from "../middlewares/requiereToken.js";
+import { requiereRefreshToken } from "../middlewares/requiereRefreshToken.js";
+import { login, register, refreshToken, logout } from "../controllers/auth.controller.js";
+import { bodyLoginValidator, bodyRegisterValidator } from "../middlewares/validatiorManager.js";
 const router = Router();
 
 // Recuerda colocar el trim() primero para que no de error antes de quittarle los espacios
-router.post("/register",
-    // validación antes de que llegue al register
-    [
-        body('email', "formato de email incorrecto")
-            .trim()
-            .isEmail()
-            .normalizeEmail(),
-        body("password", "Minimo 6 carácteres").trim().isLength({ min: 5 }),
-        body("password", "formato de password incorrecto").custom(
-            (value, { req }) => {
-                if (value !== req.body.repassword) {
-                    throw new Error('no coinciden las contraseñas')
-                }
-                return value
-            })
-    ],
-    // error que viene de middlewares
-    validationResultExpress,
-    register);
+router.post("/register", bodyRegisterValidator, register); 
+router.post("/login", bodyLoginValidator, login);
 
-router.post(
-    "/login",
-    // validación antes de que llegue al login
-    [
-        body('email', "formato de email incorrecto")
-            .trim()
-            .isEmail()
-            .normalizeEmail(),
-    ],
-    // error que viene de middlewares
-    validationResultExpress,
-    login);
+
+// Al hacer los next() le vamos dando permiso para que pase de una función a otar antes de pasar a la ruta, asi si no existe el token de identificación no dejaarioamos pasar al usuario a la siguiente ruta
+router.get('/protected', requiereToken, infoUser);
+router.get("/refresh", requiereRefreshToken, refreshToken)
+router.get("/logout", logout)
 
 export default router;

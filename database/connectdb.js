@@ -1,5 +1,5 @@
 import mongoose from "mongoose";
-import * as dotenv from 'dotenv'
+import * as dotenv from 'dotenv';
 mongoose.set('strictQuery', false);
 dotenv.config()
 

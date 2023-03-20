@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+</head>
+<body>
+    <form id="form">
+        <input type="email" value="30@gmail.com" id="email">
+        <input type="password" value="123456" id="password">
+        <button type="submit">Acceder</button>
+    </form>
+
+    <script>
+        const form = document.getElementById("form")
+        const password = document.getElementById("password")
+        const email = document.getElementById("email")
+
+        form.addEventListener("submit", async e => {
+            // Esto evita que el navegador haga cosas por defecto como actuallizarse al pulsar el boton
+            e.preventDefault()
+            try {
+                // console.log(password.value)
+                // console.log(email.value)
+                const res =await fetch(
+                    "http://localhost:5000/api/v1/auth/login", 
+                    {
+                        method: "POST",
+                        // Esta Url tiene un ejemplo de fetch y como hacer el headers
+                        // https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch
+                        headers:{
+                            "Content-Type": "application/json",
+                        },
+                        body: JSON.stringify({
+                            email: email.value, 
+                            password: password.value,
+                        })
+
+                });
+                // console.log(res)
+                console.log("ok: " +res.ok," /status: "+ res.status)
+
+                const {token} = await res.json()
+        
+            } catch (error) {
+                console.log(error)
+            }
+        })
+    </script>
+    
+</body>
+</html>
